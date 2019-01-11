@@ -1,3 +1,45 @@
+// Logical and visual part of cube
+class CubePart {
+    constructor(xId, yId, zId, size) {
+		this.xId = xId
+		this.yId = yId
+		this.zId = zId
+		this.size = size
+		this.id = xId * size * size + yId * size + zId
+		let offset = size - 1
+		this.position = CreateVector3(x * 2 - offset, y * 2 - offset, z * 2 - offset)
+		this.colorElements = []
+		this.colorVisuals = []
+		let scale = 2
+		this.visiblePosition = MultiplyVector3(this.position, scale)
+		this.object = new Object3D(this.visiblePosition, 0.25, rgbToHex(128, 128, 128))
+    }
+
+    addColor(xOffset, yOffset, zOffset, colorId) {
+		let color = GetColor(colorId)
+		let position = AddVector3(this.position, CreateVector3(xOffset, yOffset, zOffset))
+		let elementColor = {
+			position: position,
+			colorId: colorId
+		}
+		this.colorElements.push(elementColor)
+		console.log(elementColor);
+		let visiblePosition = AddVector3(this.visiblePosition, CreateVector3(xOffset, yOffset, zOffset))
+		let visual = new Object3D(visiblePosition, 0.5, color)
+		this.colorVisuals.push(visual)
+    }
+}
+
+function GetColor(colorId) {
+	if (colorId == 0) return rgbToHex(255, 000, 000) // red
+	if (colorId == 1) return rgbToHex(255, 153, 051) // orange
+	if (colorId == 2) return rgbToHex(000, 000, 255) // blue
+	if (colorId == 3) return rgbToHex(000, 255, 000) // green
+	if (colorId == 4) return rgbToHex(255, 255, 051) // yellow
+	if (colorId == 5) return rgbToHex(255, 255, 255) // white
+	return rgbToHex(051, 051, 051) // gray
+}
+
 function create_cube(segments = 3, size = 10.0, element_size = 3.0) {
 	let halfElementSize = element_size * 0.5
 	let offset = size / (segments)
@@ -67,50 +109,6 @@ function create_cube(segments = 3, size = 10.0, element_size = 3.0) {
 			}
 		}
 	}
-}
-
-function create_cube_(size = 10.0, segments = 3) {
-    let objects = []
-    let segmentSize = 2.0 / (segments)
-    let halfSize = size * 0.5
-    let createPoint = function(x, y, segmentSize, size, sideMatrix) {
-        let point = CreateVector3(x * segmentSize - 1.0, y * segmentSize - 1.0, 1.0)
-        return MultiplyVector3ToMatrix3(MultiplyVector3(point, size), sideMatrix)
-    }
-    let sidesRotationMatrix = [
-        CreateMatrix3RotatedX(0.0),
-        CreateMatrix3RotatedX(90.0),
-        CreateMatrix3RotatedX(180.0),
-        CreateMatrix3RotatedX(270.0),
-        CreateMatrix3RotatedY(90.0),
-        CreateMatrix3RotatedY(270.0)
-    ]
-    let fakeLight = [
-        0.5,
-        0.6,
-        0.7,
-        0.8,
-        0.9,
-        1.0
-    ]
-    for(let sideId = 0; sideId < sidesRotationMatrix.length; sideId ++) {
-        for (let i = 0; i < segments; i++) {
-            for (let j = 0; j < segments; j++) {
-                let af = createPoint(     i,     j, segmentSize, halfSize, sidesRotationMatrix[sideId])
-                let bf = createPoint( i + 1,     j, segmentSize, halfSize, sidesRotationMatrix[sideId])
-                let cf = createPoint( i + 1, j + 1, segmentSize, halfSize, sidesRotationMatrix[sideId])
-                let df = createPoint(     i, j + 1, segmentSize, halfSize, sidesRotationMatrix[sideId])
-                let lightColor = parseInt((fakeLight[sideId]) * 255.0)
-                let darkColor = parseInt((fakeLight[sideId]) * 195.0)
-                let color = rgbToHex(lightColor, lightColor, lightColor)
-                if ((i + j) % 2 == 1)
-                    color = rgbToHex(darkColor, darkColor, darkColor)
-                objects.push(new Object3DTriangle(af, bf, cf, color))
-                objects.push(new Object3DTriangle(af, cf, df, color))
-            }
-        }
-    }
-    return objects
 }
 
 function rgbToHex(r, g, b, a = 255) {

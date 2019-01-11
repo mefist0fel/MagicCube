@@ -27,7 +27,25 @@ function timestamp() {
     return window.performance && window.performance.now ? window.performance.now() : new Date().getTime()
 }
 
-create_cube()
+//create_cube()
+let parts = []
+let size = 3
+let m = size - 1
+for (x = 0; x < size; x++){
+    for (y = 0; y < size; y++){
+        for (z = 0; z < size; z++){
+            let cubePart = new CubePart(x, y, z, size);
+            parts[cubePart.id] = cubePart;
+            if (x == 0) cubePart.addColor(-1, 0, 0, 0)
+            if (x == m) cubePart.addColor(+1, 0, 0, 1)
+            if (y == 0) cubePart.addColor(0, -1, 0, 2)
+            if (y == m) cubePart.addColor(0, +1, 0, 3)
+            if (z == 0) cubePart.addColor(0, 0, -1, 4)
+            if (z == m) cubePart.addColor(0, 0, +1, 5)
+        }
+    }   
+}
+
 
 function render() {
     // clear
