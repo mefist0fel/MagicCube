@@ -31,13 +31,13 @@ class CubePart {
 }
 
 function GetColor(colorId) {
-	if (colorId == 0) return rgbToHex(255, 000, 000) // red
-	if (colorId == 1) return rgbToHex(255, 153, 051) // orange
-	if (colorId == 2) return rgbToHex(000, 000, 255) // blue
-	if (colorId == 3) return rgbToHex(000, 255, 000) // green
-	if (colorId == 4) return rgbToHex(255, 255, 051) // yellow
+	if (colorId == 0) return rgbToHex(255,   0,   0) // red
+	if (colorId == 1) return rgbToHex(255, 153,  51) // orange
+	if (colorId == 2) return rgbToHex(  0,   0, 255) // blue
+	if (colorId == 3) return rgbToHex(  0, 255,   0) // green
+	if (colorId == 4) return rgbToHex(255, 255,  51) // yellow
 	if (colorId == 5) return rgbToHex(255, 255, 255) // white
-	return rgbToHex(051, 051, 051) // gray
+	return rgbToHex( 51,  51,  51) // gray
 }
 
 function create_cube(segments = 3, size = 10.0, element_size = 3.0) {
@@ -65,11 +65,11 @@ function create_cube(segments = 3, size = 10.0, element_size = 3.0) {
 	}
 
 	let colorCodes = [
-		255, 000, 000, // red
-		255, 153, 051, // orange
-		000, 000, 255, // blue
-		000, 255, 000, // green
-		255, 255, 051, // yellow
+		255,   0,   0, // red
+		255, 153,  51, // orange
+		  0,   0, 255, // blue
+		  0, 255,   0, // green
+		255, 255,  51, // yellow
 		255, 255, 255, // white
 	]
 

@@ -1,0 +1,942 @@
+// Geometry functions
+const MAX_NUMBER = Number.MAX_VALUE
+const MIN_NUMBER = Number.MIN_VALUE
+const PI = Math.PI
+const Cos = Math.cos
+const Sin = Math.sin
+
+function inRect(x, y, rsx, rsy, rex, rey) { // Rect start x/y and Rect end x/y
+	return (x >= rsx) && (x <= rex) && (y >= rsy) && (y <= rey)
+}
+
+// vector 2 functions
+function CreateVector2(x = 0.0, y = 0.0) {
+	return [x, y,]
+}
+
+function AddVector2(a, b) {
+	return [a[0] + b[0], a[1] + b[1]]
+}
+
+function SubstractVector2(a, b) {
+	return [a[0] - b[0], a[1] - b[1]]
+}
+
+function MultiplyVector2(v, multiplier) {
+	return [v[0] * multiplier, v[1] * multiplier]
+}
+
+function LerpVector2(a, b, t) {
+	return AddVector2(
+		MultiplyVector2(a, 1.0 - t),
+		MultiplyVector2(b, t)
+	)
+}
+
+function Vector2Length(v) {
+	return Math.sqrt(v[0] * v[0] + v[1] * v[1])
+}
+
+function NormalizeVector2(v) {
+	var dist = 1.0 / Vector2Length(v);
+	if (dist == Infinity) {
+		dist = MAX_NUMBER;
+	}
+	if (dist == -Infinity) {
+		dist = MIN_NUMBER;
+	}
+	return MultiplyVector2(v, dist);
+}
+
+function DotProductVector2(a, b) {
+	return a[0] * b[0] + a[1] * b[1];
+}
+
+function DistanceToLineDistance(lineStart, lineEnd, point) {
+	let lineDirection = SubstractVector2(lineEnd, lineStart)
+	let perpendicular = [lineDirection[1], -lineDirection[0]]
+	let pointDirection = SubstractVector2(lineStart, point)
+	return Math.abs(DotProductVector2(NormalizeVector2(perpendicular), pointDirection))
+}
+
+function PointToLine(lineStart, lineEnd, point) {
+	let lineDirection = SubstractVector2(lineEnd, lineStart)
+	let perpendicular = [lineDirection[1], -lineDirection[0]]
+	let pointDirection = SubstractVector2(lineStart, point)
+	return DotProductVector2(NormalizeVector2(perpendicular), pointDirection)
+}
+
+// vector 3 functions
+function CreateVector3(x = 0.0, y = 0.0, z = 0.0) {
+	return [x, y, z]
+}
+
+function AddVector3(a, b) {
+	return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]
+}
+
+function SubstractVector3(a, b) {
+	return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
+}
+
+function MultiplyVector3(v, multiplier) {
+	return [v[0] * multiplier, v[1] * multiplier, v[2] * multiplier]
+}
+
+function DotProductVector3(a, b) {
+	return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+function AngleBetweenVector3(a, b) {
+	return Math.acos(DotProductVector3(NormalizeVector3(a), NormalizeVector3(b))) / PI * 180.0
+}
+
+function AxeBetweenVector3(a, b) {
+	return NormalizeVector3(CrossProductVector3(NormalizeVector3(a), NormalizeVector3(b)))
+}
+
+function IsEqualVector3(a, b) {
+	let sigma = 0.001
+	return DistanceVector3(a, b) < sigma
+}
+
+function CrossProductVector3(a, b) {
+	return CreateVector3(
+		a[1] * b[2] - a[2] * b[1],
+		a[2] * b[0] - a[0] * b[2],
+		a[0] * b[1] - a[1] * b[0]
+	)
+}
+
+function Vector3Length(v) {
+	return Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
+}
+
+function DistanceVector3(a, b) {
+	return Vector3Length(SubstractVector3(a, b))
+}
+
+function NormalizeVector3(v) {
+	let dist = 1.0 / Vector3Length(v)
+	if (dist == NaN) {
+		dist = MAX_NUMBER
+	}
+	if (dist == Infinity) {
+		dist = MAX_NUMBER
+	}
+	if (dist == -Infinity) {
+		dist = MIN_NUMBER
+	}
+	return MultiplyVector3(v, dist)
+}
+
+function LerpVector3(a, b, t) {
+	return AddVector3(
+		MultiplyVector3(a, 1.0 - t),
+		MultiplyVector3(b, t)
+	)
+}
+
+function FindMiddlePoint (points) {
+	let sum = CreateVector3()
+	for(let i = 0; i < points.length; i++) {
+		sum = AddVector3(sum, points[i])
+	}
+	return MultiplyVector3(sum, 1.0 / parseFloat(points.length))
+}
+
+// Matrix 3 * 3 functions
+function CreateUnitMatrix3() {
+	return [     //  ids
+		1, 0, 0, // 0 1 2
+		0, 1, 0, // 3 4 5
+		0, 0, 1  // 6 7 8
+	]
+}
+
+function CreateMatrix3RotatedX(angle = 0.0) {
+	// angles in radians
+	var a = angle / 180.0 * PI
+	var ca = Cos(a)
+	var sa = Sin(a)
+	return [
+		1,  0,  0,
+		0, ca,-sa,
+		0, sa, ca
+	]
+}
+
+function CreateMatrix3RotatedY(angle = 0.0) {
+	// angles in radians
+	var a = angle / 180.0 * PI
+	var ca = Cos(a)
+	var sa = Sin(a)
+	return [
+		 ca,  0, sa,
+		  0,  1,  0,
+		-sa,  0, ca
+	]
+}
+
+function CreateMatrix3RotatedZ(angle = 0.0) {
+	// angles in radians
+	var a = angle / 180.0 * PI
+	var ca = Cos(a)
+	var sa = Sin(a)
+	return [
+		 ca,-sa, 0,
+		 sa, ca, 0,
+		  0,  0, 1
+	]
+}
+
+function CreateEulerMatrix3(xAngle = 0.0, yAngle = 0.0, zAngle = 0.0) {
+	// angles in radians
+	var a = xAngle / 180.0 * PI
+	var b = yAngle / 180.0 * PI
+	var y = zAngle / 180.0 * PI
+	var ca = Cos(a)
+	var cb = Cos(b)
+	var cy = Cos(y)
+	var sa = Sin(a)
+	var sb = Sin(b)
+	var sy = Sin(y)
+	return [
+		ca * cy - sa * sb * cy,  -ca * sy - sa * cb * cy,  sa * sb,
+		sa * cy + ca * cb * sy,  -sa * sy + ca * cb * cy, -ca * sb,
+		               sb * sy,                  sb * cy,       cb
+	]
+}
+
+function CreateRotationMatrix3(axeVector, angle) { // axe vector must be unit
+	let u = axeVector[0]
+	let v = axeVector[1]
+	let w = axeVector[2]
+	let radian = angle / 180.0 * PI
+	let c = Cos(radian)
+	let s = Sin(radian)
+	let q = (1.0 - c)
+	return [
+		u * u + (1.0 - u * u) * c, 	u * v * q - w * s, 			u * w * q + v * s,
+		u * v * q + w * s,			v * v + (1.0 - v * v) * c,	v * w * q - u * s,
+		u * w * q - v * s,			v * w * q + u * s,			w * w + (1.0 - w * w) * c
+	]
+}
+
+function MultiplyMatrix3(ma, mb) {
+	return [
+		ma[0] * mb[0] + ma[1] * mb[3] + ma[2] * mb[6],  ma[0] * mb[1] + ma[1] * mb[4] + ma[2] * mb[7],  ma[0] * mb[2] + ma[1] * mb[5] + ma[2] * mb[8],
+		ma[3] * mb[0] + ma[4] * mb[3] + ma[5] * mb[6],  ma[3] * mb[1] + ma[4] * mb[4] + ma[5] * mb[7],  ma[3] * mb[2] + ma[4] * mb[5] + ma[5] * mb[8],
+		ma[6] * mb[0] + ma[7] * mb[3] + ma[8] * mb[6],  ma[6] * mb[1] + ma[7] * mb[4] + ma[8] * mb[7],  ma[6] * mb[2] + ma[7] * mb[5] + ma[8] * mb[8]
+	]
+}
+
+function MultiplyVector3ToMatrix3(v, m) {
+	return [
+		v[0] * m[0] + v[1] * m[1] + v[2] * m[2],
+		v[0] * m[3] + v[1] * m[4] + v[2] * m[5],
+		v[0] * m[6] + v[1] * m[7] + v[2] * m[8]
+	]
+}
+
+function findMiddlePoint (points) {
+	let sum = CreateVector3()
+	for(let i = 0; i < points.length; i++) {
+		sum = AddVector3(sum, points[i])
+	}
+	return MultiplyVector3(sum, 1.0 / parseFloat(points.length))
+}
+
+function CreateMatrix3FromQuaternion(quaternion)
+{
+	let x = quaternion[0]
+	let y = quaternion[1]
+	let z = quaternion[2]
+	let w = quaternion[3]
+
+	let x2 = x + x
+	let y2 = y + y
+	let z2 = z + z;
+	let xx = x * x2
+	let xy = x * y2
+	let xz = x * z2
+	let yy = y * y2
+	let yz = y * z2
+	let zz = z * z2
+	let wx = w * x2
+	let wy = w * y2
+	let wz = w * z2
+
+	return [
+		1.0 - (yy + zz),	xy + wz,			xz - wy,
+		xy - wz,			1.0 - (xx + zz), 	yz + wx,
+		xz + wy,			yz - wx, 			1.0 - (xx + yy)
+	]
+}
+
+// Quaternion
+function CreateQuaternion() {
+	return [
+	//	x  y  z  w //  ids
+		0, 0, 0, 1 // 0 1 2 3
+	]
+}
+function CreateQuaternionFromMatrix3(m) {
+	// http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
+	let w = Math.sqrt(1.0 + m[0] + m[4] + m[8]) / 2.0;
+	let w4 = w * 4.0
+	return [
+		(m[7] - m[5]) / w4,
+		(m[2] - m[6]) / w4,
+		(m[3] - m[1]) / w4,
+		w
+	]
+	// x = (m1.m21 - m1.m12) / w4 ;
+	// y = (m1.m02 - m1.m20) / w4 ;
+	// z = (m1.m10 - m1.m01) / w4 ;
+	// 0 1 2   00 01 02
+	// 3 4 5   10 11 12
+	// 6 7 8   20 21 22
+}
+
+// Matrix 4 * 4 functions
+function CreateUnitMatrix4() {
+	return [         //  ids
+		1, 0, 0, 0,  //  0  1  2  3
+		0, 1, 0, 0,  //  4  5  6  7
+		0, 0, 1, 0,  //  8  9 10 11
+		0, 0, 0, 1   // 12 13 14 15
+	]
+}
+function CreateMatrix4FromMatrix3(m) { // matrix3 and position
+	return [         //  ids
+		m[0], m[1], m[2],    0,  //  0  1  2  3
+		m[3], m[4], m[5],    0,  //  4  5  6  7
+		m[6], m[7], m[8],    0,  //  8  9 10 11
+		   0,    0,    0,    1   // 12 13 14 15
+	]
+}
+
+function CreateMatrix4(positionVector3, scale = 1.0) {
+	var x = positionVector3[0]
+	var y = positionVector3[1]
+	var z = positionVector3[2]
+	var s = scale
+	return [
+		s, 0, 0, 0,
+		0, s, 0, 0,
+		0, 0, s, 0,
+		x, y, z, 1
+	]
+}
+
+function MultiplyVector3ToMatrix4(v, m) {
+	var vec4 = [v[0], v[1], v[2], 1.0]
+	var res = MultiplyVector4ToMatrix4(vec4, m)
+	return [
+		res[0] / res[3],
+		res[1] / res[3],
+		res[2] / res[3]
+	]
+}
+
+function MultiplyVector4ToMatrix4(v, m) {
+	return [
+		v[0] * m[ 0] + v[1] * m[ 4] + v[2] * m[ 8] + v[3] * m[12],
+		v[0] * m[ 1] + v[1] * m[ 5] + v[2] * m[ 9] + v[3] * m[13],
+		v[0] * m[ 2] + v[1] * m[ 6] + v[2] * m[10] + v[3] * m[14],
+		v[0] * m[ 3] + v[1] * m[ 7] + v[2] * m[11] + v[3] * m[15]
+	]
+}
+
+function CreateProjectionMatrix4(topY = 100.0, rightX = 100.0, nearZ = 1.0, farZ = 100.0) {
+	// http://www.songho.ca/opengl/gl_projectionmatrix.html
+	var n = nearZ
+	var f = farZ
+	var t = topY
+	var r = rightX
+	var g = (f + n) / (f - n)
+	var h = (-2.0 * f * n) / (f - n)
+	return [
+		n/r,   0,   0,   0,
+		  0, n/t,   0,   0,
+		  0,   0,   g,  -1,
+		  0,   0,   h,   0
+	]
+}
+
+function MultiplyMatrix4(ma, mb) {
+	return [
+		ma[ 0] * mb[ 0] + ma[ 1] * mb[ 4] + ma[ 2] * mb[ 8]  + ma[ 3] * mb[12],
+		ma[ 0] * mb[ 1] + ma[ 1] * mb[ 5] + ma[ 2] * mb[ 9]  + ma[ 3] * mb[13],
+		ma[ 0] * mb[ 2] + ma[ 1] * mb[ 6] + ma[ 2] * mb[10]  + ma[ 3] * mb[14],
+		ma[ 0] * mb[ 3] + ma[ 1] * mb[ 7] + ma[ 2] * mb[11]  + ma[ 3] * mb[15],
+
+		ma[ 4] * mb[ 0] + ma[ 5] * mb[ 4] + ma[ 6] * mb[ 8]  + ma[ 7] * mb[12],
+		ma[ 4] * mb[ 1] + ma[ 5] * mb[ 5] + ma[ 6] * mb[ 9]  + ma[ 7] * mb[13],
+		ma[ 4] * mb[ 2] + ma[ 5] * mb[ 6] + ma[ 6] * mb[10]  + ma[ 7] * mb[14],
+		ma[ 4] * mb[ 3] + ma[ 5] * mb[ 7] + ma[ 6] * mb[11]  + ma[ 7] * mb[15],
+
+		ma[ 8] * mb[ 0] + ma[ 9] * mb[ 4] + ma[10] * mb[ 8]  + ma[11] * mb[12],
+		ma[ 8] * mb[ 1] + ma[ 9] * mb[ 5] + ma[10] * mb[ 9]  + ma[11] * mb[13],
+		ma[ 8] * mb[ 2] + ma[ 9] * mb[ 6] + ma[10] * mb[10]  + ma[11] * mb[14],
+		ma[ 8] * mb[ 3] + ma[ 9] * mb[ 7] + ma[10] * mb[11]  + ma[11] * mb[15],
+
+		ma[12] * mb[ 0] + ma[13] * mb[ 4] + ma[14] * mb[ 8]  + ma[15] * mb[12],
+		ma[12] * mb[ 1] + ma[13] * mb[ 5] + ma[14] * mb[ 9]  + ma[15] * mb[13],
+		ma[12] * mb[ 2] + ma[13] * mb[ 6] + ma[14] * mb[10]  + ma[15] * mb[14],
+		ma[12] * mb[ 3] + ma[13] * mb[ 7] + ma[14] * mb[11]  + ma[15] * mb[15]
+	]
+}// Base keys, mouse, touches input
+function Input() {
+	//  KEY KODES
+	//	BACKSPACE: 8,
+	//	TAB:       9,	RETURN:   13,
+	//	ESC:      27,	SPACE:    32,
+	//	PAGEUP:   33,	PAGEDOWN: 34,
+	//	END:      35,	HOME:     36,
+	//	LEFT:     37,	UP:       38,
+	//	RIGHT:    39,	DOWN:     40,
+	//	INSERT:   45,	DELETE:   46,
+	//	ZERO:     48, ONE: 49, TWO: 50, THREE: 51, FOUR: 52, FIVE: 53, SIX: 54, SEVEN: 55, EIGHT: 56, NINE: 57,
+	//	A:        65, B: 66, C: 67, D: 68, E: 69, F: 70, G: 71, H: 72, I: 73, J: 74, K: 75, L: 76, M: 77, N: 78, O: 79, P: 80, Q: 81, R: 82, S: 83, T: 84, U: 85, V: 86, W: 87, X: 88, Y: 89, Z: 90,
+	//	TILDA:    192
+
+	var input = {
+		keyPressed: clearKeys(),
+		keyDown: clearKeys(),
+		mouseLeft: false,
+		mouseLeftDown: false,
+		mousePosition: [0, 0],
+		touches: [],
+		touchesDown: [],
+		isTouchInRect: function (rectSX, rectSY, rectEX, rectEY) {
+			if (this.mouseLeft && inRect(this.mousePosition[0], this.mousePosition[1], rectSX, rectSY, rectEX, rectEY))
+				return true
+			for(let i = 0; i < this.touches.length; i++) {
+				if (inRect(this.touches[i][0], this.touches[i][1], rectSX, rectSY, rectEX, rectEY))
+					return true
+			}
+			return false
+		},
+		isTouchDownInRect: function (rectSX, rectSY, rectEX, rectEY) {
+			if (this.mouseLeftDown && inRect(this.mousePosition[0], this.mousePosition[1], rectSX, rectSY, rectEX, rectEY))
+				return true
+			for(let i = 0; i < this.touchesDown.length; i++) {
+				if (inRect(this.touchesDown[i][0], this.touchesDown[i][1], rectSX, rectSY, rectEX, rectEY))
+					return true
+			}
+			return false
+		},
+		updateInput: function () {
+			this.mouseLeftDown = false
+			this.keyDown = clearKeys()
+			this.touchesDown = []
+		}
+	}
+
+	function clearKeys(count = 200) {
+		let keys = []
+		for(var i = 0; i < 200; i++) {
+			keys[i] = false
+		}
+		return keys
+	}
+
+	function onKeyDown(event) {
+		input.keyDown[event.keyCode] = true
+		input.keyPressed[event.keyCode] = true
+	}
+	function onKeyUp(event) {
+		input.keyPressed[event.keyCode] = false
+	}
+
+	// function onClick(event) {}
+
+	function mouseDown(event) {
+		input.mouseLeft = true
+		input.mouseLeftDown = true
+		input.mousePosition[0] = event.clientX
+		input.mousePosition[1] = event.clientY
+	}
+
+	function mouseUp(event) {
+		input.mouseLeft = false
+		input.mousePosition[0] = event.clientX
+		input.mousePosition[1] = event.clientY
+	}
+
+	function mouseMove(event) {
+		input.mousePosition[0] = event.clientX
+		input.mousePosition[1] = event.clientY
+	}
+
+	function onTouchStart(event) {
+		input.touchesDown = createTouchList(event)
+		onTouch(event)
+	}
+
+	function onTouch(event) {
+		input.touches = createTouchList(event)
+		event.preventDefault()
+	}
+
+	function createTouchList(event) {
+		let touches = []
+		for(let i = 0; i < event.touches.length; i++) {
+			touches.push([event.touches[i].clientX, event.touches[i].clientY])
+		}
+		return touches
+	}
+
+	function addListener(type, callback) {
+		document.addEventListener(type, callback, {passive: false})
+	}
+
+	// addListener('click',		onClick)
+	addListener('mousedown',	mouseDown)
+	addListener('mouseup',		mouseUp)
+	addListener('mousemove',	mouseMove)
+	addListener('keydown',		onKeyDown)
+	addListener('keyup',		onKeyUp)
+	addListener('touchstart',	onTouchStart)
+	addListener('touchmove',	onTouch)
+	addListener("touchend",		onTouch);
+	addListener("touchcancel",	onTouch);
+
+	return input;
+}// 3d camera controller
+class Camera {
+    constructor(canvas, width = 100.0, height = 100.0) {
+        this.objects = []
+        this.setSize(width, height)
+        this.worldMatrix = CreateUnitMatrix3()
+        this.projectionMatrix = CreateProjectionMatrix4(1.0, 1.0, 1.0, 2.0)
+        this.cameraPosition = CreateVector3(0.0, 0.0, 20.0)
+        this.position = CreateVector3()
+        this.canvas = canvas
+
+        Camera.instance = this
+    }
+
+    setSize(width, height) {
+        this.screenWidht = width;
+        this.screenHeight = height;
+        this.centerOffcet = CreateVector3(width * 0.5, height * 0.5)
+        this.screenScale = Math.min(width, height)
+    }
+
+    render () {
+		for (let i = 0; i < this.objects.length; i++) {
+            this.objects[i].prepareScene(this)
+		}
+		this.objects.sort(object3DDepthComparator)
+		for (let i = 0; i < this.objects.length; i++) {
+			this.objects[i].draw(this.canvas)
+		}
+    }
+
+    worldToScreenVector3 (point) {
+        let worldPoint = point
+        worldPoint = AddVector3(worldPoint, MultiplyVector3(this.position, -1.0))
+        worldPoint = MultiplyVector3ToMatrix3(worldPoint, this.worldMatrix)
+        worldPoint = AddVector3(worldPoint, this.cameraPosition)
+        worldPoint = MultiplyVector3ToMatrix4(worldPoint, this.projectionMatrix)
+        worldPoint = MultiplyVector3(worldPoint, this.screenScale)
+        return AddVector3(worldPoint, this.centerOffcet)
+    }
+
+    worldToScreenVector3WithOffcet (point, offcet) {
+        let worldPoint = point
+        worldPoint = AddVector3(worldPoint, MultiplyVector3(this.position, -1.0))
+        worldPoint = MultiplyVector3ToMatrix3(worldPoint, this.worldMatrix)
+        worldPoint = AddVector3(worldPoint, this.cameraPosition)
+        worldPoint = AddVector3(worldPoint, offcet)
+        worldPoint = MultiplyVector3ToMatrix4(worldPoint, this.projectionMatrix)
+        worldPoint = MultiplyVector3(worldPoint, this.screenScale)
+        return AddVector3(worldPoint, this.centerOffcet)
+    }
+}// 3d Dot class
+class Object3D {
+    constructor(positionVector3, radius = 0.5, color = '#FFEEEE') {
+		this.position = positionVector3
+		this.screenPosition = CreateVector3()
+		this.color = color
+		this.radiusPositionVector = CreateVector3(radius)
+		this.screenRadius = 10.0
+		this.enabled = true
+		Camera.instance.objects.push(this)
+	}
+
+	setRadius(radius) {
+		this.radiusPositionVector = CreateVector3(radius)
+	}
+	
+	prepareScene (camera) {
+		if (!this.enabled)
+			return
+		this.screenPosition = camera.worldToScreenVector3(this.position)
+		let screenRadiusPosition = camera.worldToScreenVector3WithOffcet(this.position, this.radiusPositionVector)
+		let screenRadiusVector = SubstractVector3(this.screenPosition, screenRadiusPosition)
+		this.screenRadius = Vector3Length(screenRadiusVector)
+	}
+
+	draw (canvas) {
+		if (!this.enabled)
+			return
+		canvas.fillStyle = this.color
+		canvas.beginPath()
+		canvas.arc(this.screenPosition[0], this.screenPosition[1], this.screenRadius, 0, 2.0 * Math.PI);
+		canvas.closePath()
+		canvas.fill()
+	}
+}
+// 3d Triangle class
+class Object3DTriangle {
+    constructor(a, b, c, color = '#FFEEEE', filled = true, ignoreBackface = true) {
+		this.points = [a, b, c]
+		this.screenPoints = [a, b, c]
+		this.position = FindMiddlePoint(this.points)
+		this.screenPosition = CreateVector3()
+		this.color = color
+		this.ignoreBackface = ignoreBackface
+		this.filled = filled
+		this.enabled = true
+		Camera.instance.objects.push(this)
+	}
+	
+	prepareScene (camera) {
+		if (!this.enabled)
+			return
+		this.screenPosition = camera.worldToScreenVector3(this.position)
+		for(let i = 0; i < this.screenPoints.length; i++) {
+			this.screenPoints[i] = camera.worldToScreenVector3(this.points[i])
+		}
+	}
+
+	draw (canvas) {
+		if (!this.enabled)
+			return
+		if (this.ignoreBackface) {
+			var dot = PointToLine(this.screenPoints[0], this.screenPoints[1], this.screenPoints[2])
+			if (dot > 0)
+				return
+		}
+		canvas.fillStyle = this.color
+		canvas.strokeStyle = this.color
+		canvas.beginPath()
+		let last = this.screenPoints[this.screenPoints.length - 1]
+		canvas.moveTo(last[0], last[1])
+		for(let i = 0; i < this.screenPoints.length; i++) {
+			canvas.lineTo(this.screenPoints[i][0], this.screenPoints[i][1]);
+		}
+		canvas.closePath()
+		if (this.filled)
+			canvas.fill()
+		canvas.stroke()
+	}
+}
+
+function object3DDepthComparator (objectA, objectB) {
+	if (objectA.screenPosition[2] < objectB.screenPosition[2])
+		return -1
+	if (objectA.screenPosition[2] > objectB.screenPosition[2])
+		return 1
+	return 0
+}// Logical and visual part of cube
+class CubePart {
+    constructor(xId, yId, zId, size) {
+		this.xId = xId
+		this.yId = yId
+		this.zId = zId
+		this.size = size
+		this.id = xId * size * size + yId * size + zId
+		let offset = size - 1
+		this.position = CreateVector3(x * 2 - offset, y * 2 - offset, z * 2 - offset)
+		this.colorElements = []
+		this.colorVisuals = []
+		let scale = 2
+		this.visiblePosition = MultiplyVector3(this.position, scale)
+		this.object = new Object3D(this.visiblePosition, 0.25, rgbToHex(128, 128, 128))
+    }
+
+    addColor(xOffset, yOffset, zOffset, colorId) {
+		let color = GetColor(colorId)
+		let position = AddVector3(this.position, CreateVector3(xOffset, yOffset, zOffset))
+		let elementColor = {
+			position: position,
+			colorId: colorId
+		}
+		this.colorElements.push(elementColor)
+		console.log(elementColor);
+		let visiblePosition = AddVector3(this.visiblePosition, CreateVector3(xOffset, yOffset, zOffset))
+		let visual = new Object3D(visiblePosition, 0.5, color)
+		this.colorVisuals.push(visual)
+    }
+}
+
+function GetColor(colorId) {
+	if (colorId == 0) return rgbToHex(255,   0,   0) // red
+	if (colorId == 1) return rgbToHex(255, 153,  51) // orange
+	if (colorId == 2) return rgbToHex(  0,   0, 255) // blue
+	if (colorId == 3) return rgbToHex(  0, 255,   0) // green
+	if (colorId == 4) return rgbToHex(255, 255,  51) // yellow
+	if (colorId == 5) return rgbToHex(255, 255, 255) // white
+	return rgbToHex( 51,  51,  51) // gray
+}
+
+function create_cube(segments = 3, size = 10.0, element_size = 3.0) {
+	let halfElementSize = element_size * 0.5
+	let offset = size / (segments)
+	let idOffset = (segments - 1) / 2
+	let addQuad = function(a, b, c, d, pts, size, colorCodes, id) {
+		let quadCenter = FindMiddlePoint([pts[a], pts[b], pts[c], pts[d]])
+		let colorMultiplier = getVectorMaxValue(quadCenter) / size * 0.8 + 0.2
+		let base = 0
+		if (colorMultiplier > 0.97) {
+			colorMultiplier = 1
+			base = 0
+		} else {
+			colorMultiplier = 0.1
+			base = 46
+		}
+
+ 		let color = rgbToHex(
+			parseInt(colorCodes[id * 3 + 0] * colorMultiplier + base), 
+			parseInt(colorCodes[id * 3 + 1] * colorMultiplier + base), 
+			parseInt(colorCodes[id * 3 + 2] * colorMultiplier + base))
+		new Object3DTriangle(pts[a], pts[c], pts[b], color)
+		new Object3DTriangle(pts[a], pts[d], pts[c], color)
+	}
+
+	let colorCodes = [
+		255,   0,   0, // red
+		255, 153,  51, // orange
+		  0,   0, 255, // blue
+		  0, 255,   0, // green
+		255, 255,  51, // yellow
+		255, 255, 255, // white
+	]
+
+    let createSmallCube = function(x, y, z, scale, fieldSize, hs) {
+
+		let center = MultiplyVector3(CreateVector3(x, y, z), scale)
+		let pts = [
+			AddVector3(center, CreateVector3(-hs, -hs, -hs)), // 000    0
+			AddVector3(center, CreateVector3(-hs, -hs, +hs)), // 001    1
+			AddVector3(center, CreateVector3(-hs, +hs, -hs)), // 010    2
+			AddVector3(center, CreateVector3(-hs, +hs, +hs)), // 011    3
+			AddVector3(center, CreateVector3(+hs, -hs, -hs)), // 100    4
+			AddVector3(center, CreateVector3(+hs, -hs, +hs)), // 101    5
+			AddVector3(center, CreateVector3(+hs, +hs, -hs)), // 110    6
+			AddVector3(center, CreateVector3(+hs, +hs, +hs))  // 111    7
+		]
+		// 0 2 3 1
+		// 4 5 7 6
+		addQuad(0, 2, 3, 1, pts, fieldSize, colorCodes, 0)
+		addQuad(4, 5, 7, 6, pts, fieldSize, colorCodes, 1)
+
+		// 1 3 7 5
+		// 0 4 6 2
+		addQuad(1, 3, 7, 5, pts, fieldSize, colorCodes, 2)
+		addQuad(0, 4, 6, 2, pts, fieldSize, colorCodes, 3)
+
+		// 2 6 7 3
+		// 0 1 5 4
+		addQuad(2, 6, 7, 3, pts, fieldSize, colorCodes, 4)
+		addQuad(0, 1, 5, 4, pts, fieldSize, colorCodes, 5)
+	}
+
+	for(let x = 0; x < segments; x ++) {
+		for(let y = 0; y < segments; y ++) {
+			for(let z = 0; z < segments; z ++) {
+				createSmallCube(x - idOffset, y - idOffset, z - idOffset, offset, (size - (size - element_size * segments)) * 0.5, halfElementSize)
+			}
+		}
+	}
+}
+
+function rgbToHex(r, g, b, a = 255) {
+    function componentToHex(c) {
+        var hex = Math.min(255, Math.max(0, c)).toString(16)
+        return hex.length == 1 ? "0" + hex : hex;
+    }
+    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b) + componentToHex(a);
+}
+
+function getVectorMaxValue(v) {
+	var a = Math.abs(v[0])
+	var b = Math.abs(v[1])
+	var c = Math.abs(v[2])
+	if (a > b) {
+		if (a > c) {
+			return a
+		} else {
+			return c
+		}
+	} else {
+		if (b > c) {
+			return b
+		} else {
+			return c
+		}
+	}
+}
+const minDt = 1/30
+let fps,
+    time = timestamp()
+
+let width = document.documentElement.clientWidth
+let height = document.documentElement.clientHeight
+let minSize = Math.min(width, height)
+
+// init
+let input = Input()
+let canvasElement = document.getElementById('canvas')
+let canvas = canvasElement.getContext('2d')
+let camera = new Camera(canvas)
+SetCanvasSize(width, height)
+let changeLevelAnim = 0
+let changeLevelDirection = 1.0
+let levelId = 0
+
+let currentMatrix = CreateUnitMatrix3()
+let rotationAxe = NormalizeVector3(CreateVector3(1.0, 1.0, 1.0))
+
+let needShowDebugInfo = false
+let needShowFPSInfo = false
+
+function timestamp() {
+    return window.performance && window.performance.now ? window.performance.now() : new Date().getTime()
+}
+
+//create_cube()
+let parts = []
+let size = 3
+let m = size - 1
+for (x = 0; x < size; x++){
+    for (y = 0; y < size; y++){
+        for (z = 0; z < size; z++){
+            let cubePart = new CubePart(x, y, z, size);
+            parts[cubePart.id] = cubePart;
+            if (x == 0) cubePart.addColor(-1, 0, 0, 0)
+            if (x == m) cubePart.addColor(+1, 0, 0, 1)
+            if (y == 0) cubePart.addColor(0, -1, 0, 2)
+            if (y == m) cubePart.addColor(0, +1, 0, 3)
+            if (z == 0) cubePart.addColor(0, 0, -1, 4)
+            if (z == m) cubePart.addColor(0, 0, +1, 5)
+        }
+    }   
+}
+
+
+function render() {
+    // clear
+    canvas.fillStyle = '#000011'
+    canvas.fillRect ( 0, 0, width, height)
+    renderGameState()
+    // debug
+    if (needShowFPSInfo) {
+        canvas.textAlign = "end";
+        canvas.fillText("FPS: " + Math.round(fps), width - 30, 50)
+    }
+}
+
+function drawMenuIcon(x, y, size) {
+    canvas.fillStyle = '#FFFFFF33'
+    canvas.strokeStyle = '#FFFFFF11'
+    canvas.rect(x - size * 0.5, y + size * 0.3, size, size * 0.2)
+    canvas.rect(x - size * 0.5, y - size * 0.1, size, size * 0.2)
+    canvas.rect(x - size * 0.5, y - size * 0.5, size, size * 0.2)
+    canvas.fill()
+    canvas.stroke()
+}
+
+function renderGameState() {
+    camera.render()
+    // info
+    canvas.fillStyle = '#FFFFFF'  // white
+    canvas.textAlign = "start"; // "end", "center", "left", "right"
+    canvas.textBaseline = "middle"; // textBaseline = "top" || "hanging" || "middle" || "alphabetic" || "ideographic" || "bottom";
+    canvas.fillText("test", minSize * 0.15, minSize * 0.1)
+}
+
+function update(dt) {
+    updateGameState(dt)
+    if (input.keyDown[115]) { // F4
+        needShowFPSInfo = !needShowFPSInfo
+        console.log(Camera.instance.objects.length)
+    }
+    if (input.keyDown[113]) { // F2
+        needShowDebugInfo = !needShowDebugInfo
+        level.showDebugInfo(needShowDebugInfo)
+    }
+}
+
+function updateGameState(dt) {
+    // control
+    // UP = 38
+    // DOWN = 40
+    // LEFT = 37
+    // RIGHT = 39
+    // W = 87
+    // S = 83
+    // A = 65
+    // D = 68
+    // space = 32
+    if (input.keyDown[27]) { // esc
+       // setState(pauseState)
+    }
+    if (input.isTouchDownInRect(width * 0.7, 0, width, height * 0.3)) { // top right screen space touch
+       // setState(pauseState)
+    }
+    if (input.keyPressed[65] || input.keyPressed[37]) { // LEFT | A
+    }
+    if (input.keyPressed[68] || input.keyPressed[39]) { // RIGHT | D
+    }
+    if (input.isTouchInRect(0, height * 0.5, width * 0.5, height)) {
+    }
+    if (input.isTouchInRect(width * 0.5, height * 0.5, width, height)) {
+    }
+    currentMatrix = MultiplyMatrix3(currentMatrix, CreateRotationMatrix3(rotationAxe, 20.0 * dt))
+    rotationAxe = NormalizeVector3(
+        CreateVector3(
+            rotationAxe[0] * 100.0 + (Math.random() * 2.0 - 1),
+            rotationAxe[1] * 100.0 + (Math.random() * 2.0 - 1),
+            rotationAxe[2] * 100.0 + (Math.random() * 2.0 - 1)))
+    camera.worldMatrix = currentMatrix
+}
+
+function frame() {
+    let now = timestamp()
+    let delta = (now - time) / 1000.0
+    fps = 1.0 / delta
+    if (delta > minDt) {
+        delta = minDt
+    }
+    update(delta)
+    render()
+    time = now
+    requestAnimationFrame(frame)
+    if (width != document.documentElement.clientWidth || height != document.documentElement.clientHeight) {
+        width = document.documentElement.clientWidth
+        height = document.documentElement.clientHeight
+        minSize = Math.min(width, height)
+        SetCanvasSize(width, height)
+    }
+    input.updateInput()
+}
+requestAnimationFrame(frame)
+
+function SetCanvasSize(width, height) {
+    canvasElement.width = width
+    canvasElement.height = height
+
+    camera.setSize(width, height)
+
+    let fontSize = 32.0
+    if (height > width) {
+        fontSize *= height / width
+    }
+    canvas.font = parseInt(fontSize) + "pt Arial"
+}
