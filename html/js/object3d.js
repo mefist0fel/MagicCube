@@ -36,15 +36,22 @@ class Object3D {
 // 3d Triangle class
 class Object3DTriangle {
     constructor(a, b, c, color = '#FFEEEE', filled = true, ignoreBackface = true) {
-		this.points = [a, b, c]
+		this.setPoints(a, b, c)
 		this.screenPoints = [a, b, c]
-		this.position = FindMiddlePoint(this.points)
 		this.screenPosition = CreateVector3()
 		this.color = color
 		this.ignoreBackface = ignoreBackface
 		this.filled = filled
 		this.enabled = true
 		Camera.instance.objects.push(this)
+	}
+	
+	setPoints (a, b, c, position = null) {
+		this.points = [a, b, c]
+		if (position == null)
+			this.position = FindMiddlePoint(this.points)
+		else
+			this.position = position
 	}
 	
 	prepareScene (camera) {
