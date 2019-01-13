@@ -28,23 +28,7 @@ function timestamp() {
 }
 
 //create_cube()
-let parts = []
-let size = 3
-let m = size - 1
-for (x = 0; x < size; x++){
-    for (y = 0; y < size; y++){
-        for (z = 0; z < size; z++){
-            let cubePart = new CubePart(x, y, z, size);
-            parts[cubePart.id] = cubePart;
-            if (x == 0) cubePart.addColor(-1, 0, 0, 0)
-            if (x == m) cubePart.addColor(+1, 0, 0, 1)
-            if (y == 0) cubePart.addColor(0, -1, 0, 2)
-            if (y == m) cubePart.addColor(0, +1, 0, 3)
-            if (z == 0) cubePart.addColor(0, 0, -1, 4)
-            if (z == m) cubePart.addColor(0, 0, +1, 5)
-        }
-    }   
-}
+let cube = new Cube(3)
 
 
 function render() {
@@ -75,7 +59,7 @@ function renderGameState() {
     canvas.fillStyle = '#FFFFFF'  // white
     canvas.textAlign = "start"; // "end", "center", "left", "right"
     canvas.textBaseline = "middle"; // textBaseline = "top" || "hanging" || "middle" || "alphabetic" || "ideographic" || "bottom";
-    canvas.fillText("test", minSize * 0.15, minSize * 0.1)
+    // canvas.fillText("test", minSize * 0.15, minSize * 0.1)
 }
 
 function update(dt) {
@@ -107,14 +91,40 @@ function updateGameState(dt) {
     if (input.isTouchDownInRect(width * 0.7, 0, width, height * 0.3)) { // top right screen space touch
        // setState(pauseState)
     }
-    if (input.keyPressed[65] || input.keyPressed[37]) { // LEFT | A
+    if (input.keyDown[81]) { // Q
+        cube.rotate(0, 0)
     }
-    if (input.keyPressed[68] || input.keyPressed[39]) { // RIGHT | D
+    if (input.keyDown[87]) { // W
+        cube.rotate(0, 1)
+    }
+    if (input.keyDown[69]) { // E
+        cube.rotate(0, 2)
+    }
+
+    if (input.keyDown[65]) { // A
+        cube.rotate(1, 0)
+    }
+    if (input.keyDown[83]) { // S
+        cube.rotate(1, 1)
+    }
+    if (input.keyDown[68]) { // D
+        cube.rotate(1, 2)
+    }
+
+    if (input.keyDown[90]) { // Z
+        cube.rotate(2, 0)
+    }
+    if (input.keyDown[88]) { // X
+        cube.rotate(2, 1)
+    }
+    if (input.keyDown[67]) { // C
+        cube.rotate(2, 2)
     }
     if (input.isTouchInRect(0, height * 0.5, width * 0.5, height)) {
     }
     if (input.isTouchInRect(width * 0.5, height * 0.5, width, height)) {
     }
+    cube.update(dt)
     currentMatrix = MultiplyMatrix3(currentMatrix, CreateRotationMatrix3(rotationAxe, 20.0 * dt))
     rotationAxe = NormalizeVector3(
         CreateVector3(

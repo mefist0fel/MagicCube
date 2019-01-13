@@ -6,28 +6,169 @@ class CubePart {
 		this.zId = zId
 		this.size = size
 		this.id = xId * size * size + yId * size + zId
+		this.matrix = CreateUnitMatrix3()
 		let offset = size - 1
-		this.position = CreateVector3(x * 2 - offset, y * 2 - offset, z * 2 - offset)
+		this.offset = offset
+		this.startPosition = CreateVector3(xId * 2 - offset, yId * 2 - offset, zId * 2 - offset)
+		this.position = this.startPosition
 		this.colorElements = []
 		this.colorVisuals = []
-		let scale = 2
-		this.visiblePosition = MultiplyVector3(this.position, scale)
-		this.object = new Object3D(this.visiblePosition, 0.25, rgbToHex(128, 128, 128))
+		let visualScale = 5 / this.size
+		this.visiblePosition = MultiplyVector3(this.position, visualScale)
+		// this.object = new Object3D(this.visiblePosition, 0.25, rgbToHex(128, 128, 128))
+		this.calculateId()
+		this.rotationAngle = 0
+		this.axe = CreateVector3(0, 1, 0)
     }
 
     addColor(xOffset, yOffset, zOffset, colorId) {
 		let color = GetColor(colorId)
-		let position = AddVector3(this.position, CreateVector3(xOffset, yOffset, zOffset))
+		let position = AddVector3(this.position, CreateVector3(xOffset, yOffset, zOffset))// CreateVector3(xOffset * 2, yOffset * 2, zOffset * 2))
 		let elementColor = {
 			position: position,
 			colorId: colorId
 		}
 		this.colorElements.push(elementColor)
-		console.log(elementColor);
-		let visiblePosition = AddVector3(this.visiblePosition, CreateVector3(xOffset, yOffset, zOffset))
+		let visualScale = 5 / this.size
+		let visiblePosition = MultiplyVector3(position, visualScale)
 		let visual = new Object3D(visiblePosition, 0.5, color)
 		this.colorVisuals.push(visual)
-    }
+	}
+	
+	rotate(axe, angle = 90) {
+		this.axe = axe
+		this.rotationAngle = angle
+		let rotationMatrix = CreateRotationMatrix3(axe, angle)
+		this.matrix = MultiplyMatrix3(rotationMatrix, this.matrix)
+		this.position = MultiplyVector3ToMatrix3(this.startPosition, this.matrix)
+		// for(let i = 0; i < this.colorElements.length; i++) {
+		// 	// this.colorElements[i].position = MultiplyVector3ToMatrix3(this.colorElements[i].position, rotationMatrix)
+		// 	let visualScale = 5 / this.size
+		// 	let visiblePosition = MultiplyVector3(MultiplyVector3ToMatrix3(this.colorElements[i].position, this.matrix), visualScale)
+		// 	this.colorVisuals[i].position = visiblePosition
+		// }
+		this.calculateId()
+	}
+
+	calculateId() {
+		let xId = parseInt(Math.round((this.position[0] + this.offset) * 0.5))
+		let yId = parseInt(Math.round((this.position[1] + this.offset) * 0.5))
+		let zId = parseInt(Math.round((this.position[2] + this.offset) * 0.5))
+		this.xId = xId
+		this.yId = yId
+		this.zId = zId
+		this.position = CreateVector3(xId * 2 - this.offset, yId * 2 - this.offset, zId * 2 - this.offset)
+		this.id = xId * this.size * this.size + yId * this.size + zId
+	}
+
+	update(dt) {
+		if (this.rotationAngle <= 0)
+			return
+		let rotationSpeed = 230
+		this.rotationAngle -= rotationSpeed * dt
+		if (this.rotationAngle < 0)
+			this.rotationAngle = 0
+		let rotationMatrix = CreateRotationMatrix3(this.axe, -this.rotationAngle)
+		let matrix = MultiplyMatrix3(rotationMatrix, this.matrix)
+		for(let i = 0; i < this.colorElements.length; i++) {
+			let visualScale = 5 / this.size
+			let visiblePosition = MultiplyVector3(MultiplyVector3ToMatrix3(this.colorElements[i].position, matrix), visualScale)
+			this.colorVisuals[i].position = visiblePosition
+		}
+	}
+}
+
+class Cube {
+    constructor(segments = 3) {
+		this.parts = []
+		this.segments = segments
+		let m = segments - 1
+		for (let x = 0; x < segments; x++){
+			for (let y = 0; y < segments; y++){
+				for (let z = 0; z < segments; z++){
+					let cubePart = new CubePart(x, y, z, segments);
+					this.parts[cubePart.id] = cubePart;
+					if (x == 0) { cubePart.addColor(-1, 0, 0, 0)}
+					if (x == m) { cubePart.addColor(+1, 0, 0, 1)}
+					if (y == 0) { cubePart.addColor(0, -1, 0, 2)}
+					if (y == m) { cubePart.addColor(0, +1, 0, 3)}
+					if (z == 0) { cubePart.addColor(0, 0, -1, 4)}
+					if (z == m) { cubePart.addColor(0, 0, +1, 5)}
+				}
+			}   
+		}
+	}
+
+	update(dt) {
+		for (let i = 0; i < this.parts.length; i++) {
+			this.parts[i].update(dt)
+		}
+	}
+
+	rotate(axeId, row) { // axeId - 0 - x, 1 - y, 2 - z
+		axeId = Clamp(axeId, 0, 2)
+		let axe = GetAxe(axeId)
+		for(let x = 0; x < this.segments; x++) {
+			for(let y = 0; y < this.segments; y++) {
+				for(let z = 0; z < this.segments; z++) {
+					if (row == GetRow(axeId, x, y, z)) {
+						let id = this.getId(x, y, z)
+						this.parts[id].rotate(axe)
+					}
+				}
+			}
+		}
+		this.parts = this.remapId()
+	}
+
+	remapId() {
+		let shifted = []
+		for(let x = 0; x < this.segments; x++) {
+			for(let y = 0; y < this.segments; y++) {
+				for(let z = 0; z < this.segments; z++) {
+					let id = this.getId(x, y, z)
+					shifted[this.parts[id].id] = this.parts[id]
+				}
+			}
+		}
+		return shifted
+	}
+
+	getId(x, y, z) {
+		return x * this.segments * this.segments + y * this.segments + z
+	}
+}
+
+function GetAxe(axeId) {
+	if (axeId == 0) {
+		return CreateVector3(1, 0, 0)
+	}
+	if (axeId == 1) {
+		return CreateVector3(0, 1, 0)
+	}
+	if (axeId == 2) {
+		return CreateVector3(0, 0, 1)
+	}
+	console.error("axe id is out of range")
+	return CreateVector3()
+}
+	
+function GetRow(axeId, x, y, z) { // axeId - 0 - x, 1 - y, 2 - z
+	if (axeId == 0) {
+		return x
+	}
+	if (axeId == 1) {
+		return y
+	}
+	return z
+}
+
+function Clamp(value, min = 0, max = 1) {
+	if (value < min)
+		return min
+	if (value > max)
+		return max
+	return value
 }
 
 function GetColor(colorId) {
